@@ -38,7 +38,33 @@ const createGiveawaySchema = z.object({
 		.min(1, "Experience is required"),
 });
 
+const updateGiveawaySchema = z.object({
+	title: z
+		.string()
+		.min(1, "Title is required")
+		.max(100, "Title must be less than 100 characters"),
+	description: z
+		.string()
+		.max(500, "Description must be less than 500 characters")
+		.optional(),
+	end_date: z.string().refine((date) => {
+		const endDate = new Date(date);
+		const now = new Date();
+		return endDate > now;
+	}, "End date must be in the future"),
+	prize_image_url: z
+		.string()
+		.url("Must be a valid URL")
+		.optional()
+		.or(z.literal("")),
+	prize_title: z
+		.string()
+		.min(1, "Prize title is required")
+		.max(100, "Prize title must be less than 100 characters"),
+});
+
 export type CreateGiveawayInput = z.infer<typeof createGiveawaySchema>;
+export type UpdateGiveawayInput = z.infer<typeof updateGiveawaySchema>;
 
 // ============================================================================
 // ACTION RESULTS
@@ -254,6 +280,80 @@ export async function createGiveaway(
 		};
 	} catch (error) {
 		console.error("Create giveaway error:", error);
+		return { success: false, error: "An unexpected error occurred" };
+	}
+}
+
+/**
+ * Update an existing giveaway
+ */
+export async function updateGiveaway(
+	giveawayId: string,
+	companyId: string,
+	input: UpdateGiveawayInput,
+): Promise<ActionResult> {
+	try {
+		const validationResult = updateGiveawaySchema.safeParse(input);
+
+		if (!validationResult.success) {
+			const firstError = validationResult.error.issues[0];
+			return { success: false, error: firstError.message };
+		}
+
+		const headersList = await headers();
+		const { userId } = await verifyUserToken(headersList);
+
+		if (!userId) {
+			return { success: false, error: "You must be logged in" };
+		}
+
+		const giveawayRows = await sql`
+			SELECT id, company_id, prize_details, status
+			FROM giveaways
+			WHERE id = ${giveawayId}
+		`;
+
+		if (giveawayRows.length === 0) {
+			return { success: false, error: "Giveaway not found" };
+		}
+
+		const giveaway = giveawayRows[0];
+
+		if (giveaway.company_id !== companyId) {
+			return {
+				success: false,
+				error: "You don't have access to this giveaway",
+			};
+		}
+
+		const { title, description, end_date, prize_title, prize_image_url } =
+			validationResult.data;
+
+		const currentPrizeDetails =
+			typeof giveaway.prize_details === "object" && giveaway.prize_details
+				? giveaway.prize_details
+				: {};
+
+		const updatedPrizeDetails = JSON.stringify({
+			...currentPrizeDetails,
+			title: prize_title,
+			image_url: prize_image_url || undefined,
+		});
+
+		await sql`
+			UPDATE giveaways
+			SET
+				title = ${title},
+				description = ${description || null},
+				end_date = ${new Date(end_date).toISOString()},
+				prize_details = ${updatedPrizeDetails}::jsonb,
+				updated_at = NOW()
+			WHERE id = ${giveawayId}
+		`;
+
+		return { success: true };
+	} catch (error) {
+		console.error("Update giveaway error:", error);
 		return { success: false, error: "An unexpected error occurred" };
 	}
 }

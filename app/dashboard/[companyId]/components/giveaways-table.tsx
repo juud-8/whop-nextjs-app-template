@@ -4,6 +4,8 @@ import { Text } from "@whop/react/components";
 import type { GiveawayWithStats } from "@/lib/data";
 import { formatDateRange, formatNumber } from "@/lib/data";
 import type { GiveawayStatus } from "@/lib/types/database";
+import { EditGiveawayDialog } from "./edit-giveaway-dialog";
+import { GiveawayDetailsDialog } from "./giveaway-details-dialog";
 import { PickWinnerButton } from "./pick-winner-button";
 
 interface GiveawaysTableProps {
@@ -79,8 +81,10 @@ function GiveawayRow({
 			</td>
 			<td className="px-6 py-4">
 				<div className="flex items-center justify-end gap-2">
-					{giveaway.status === "ended" && (
-						<PickWinnerButton
+					<GiveawayDetailsDialog giveaway={giveaway} />
+						<EditGiveawayDialog giveaway={giveaway} companyId={companyId} />
+						{giveaway.status === "ended" && (
+							<PickWinnerButton
 							giveawayId={giveaway.id}
 							companyId={companyId}
 							giveawayTitle={giveaway.title}
