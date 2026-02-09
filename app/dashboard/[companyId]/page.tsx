@@ -1,7 +1,7 @@
 import { Text } from "@whop/react/components";
 import { getDashboardStats, getCompanyGiveaways } from "@/lib/data";
 import { getCompanyTierInfo } from "@/lib/tiers";
-import { getPlanPurchaseUrl, getPurchaseUrlForProduct, listCompanyExperiences } from "@/lib/whop";
+import { listCompanyExperiences } from "@/lib/whop";
 import { StatsCards } from "./components/stats-cards";
 import { GiveawaysTable } from "./components/giveaways-table";
 import { EmptyState } from "./components/empty-state";
@@ -38,27 +38,12 @@ export default async function DashboardPage({
 		let upgradeUrl: string | null = null;
 
 		if (shouldShowUpgradeBanner) {
-			const nextPlanId =
+			upgradeUrl =
 				tierInfo.tier === "free"
-					? process.env.WHOP_PRO_PLAN_ID
-					: process.env.WHOP_BUSINESS_PLAN_ID;
+					? process.env.WHOP_PRO_CHECKOUT_URL ?? null
+					: process.env.WHOP_BUSINESS_CHECKOUT_URL ?? null;
 
-			// 1) Plan ID (plan_xxx): fetch purchase URL from Whop API
-			if (nextPlanId?.startsWith("plan_")) {
-				upgradeUrl = await getPlanPurchaseUrl(nextPlanId);
-			}
-			// 2) Product ID (prod_xxx): list plans for this product and use first plan's purchase URL
-			else if (nextPlanId?.startsWith("prod_")) {
-				upgradeUrl = await getPurchaseUrlForProduct(nextPlanId, companyId);
-			}
-			// 3) Fallback: direct checkout URLs from env (Whop Dashboard > Checkout links)
-			if (!upgradeUrl) {
-				upgradeUrl =
-					tierInfo.tier === "free"
-						? process.env.WHOP_PRO_CHECKOUT_URL ?? null
-						: process.env.WHOP_BUSINESS_CHECKOUT_URL ?? null;
-			}
-			// 4) Final fallback: single pricing/access page
+			// Fallback: single pricing/access page
 			if (!upgradeUrl && process.env.WHOP_PRICING_PAGE_URL) {
 				upgradeUrl = process.env.WHOP_PRICING_PAGE_URL;
 			}

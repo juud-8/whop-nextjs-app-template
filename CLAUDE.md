@@ -36,7 +36,7 @@ All pages use the Next.js App Router (`app/` directory):
 - **`app/discover/page.tsx`** — Public marketing page for app marketplace listing
 - **`app/access-denied/page.tsx`** — Shown when user lacks dashboard permissions
 - **`app/error/page.tsx`** — Generic error page with go-back action
-- **`app/api/webhooks/route.ts`** — Webhook handler for payment and membership events
+- **`app/api/webhooks/route.ts`** — Webhook handler for membership events
 
 ### Database (Neon PostgreSQL)
 
