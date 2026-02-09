@@ -58,7 +58,7 @@ GiveawayMaster is a **hybrid app** — it uses both Whop app views:
 - Mobile-responsive
 
 **Webhook Handler** (`/api/webhooks/`):
-- Listen for `payment.succeeded`, `membership.activated`, `membership.deactivated`
+- Listen for `membership.activated`, `membership.deactivated`
 - Auto-trigger giveaway events (e.g., new member = auto-enter giveaway)
 - Track prize fulfillment
 

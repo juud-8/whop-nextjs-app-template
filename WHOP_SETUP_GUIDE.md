@@ -44,7 +44,7 @@ Go to the **Permissions** tab. Enable these:
 | **Read company info** | Dashboard needs to display company name/title |
 | **Read user info** | To identify users entering giveaways |
 | **Read experiences** | To link giveaways to specific experiences |
-| **Read memberships** | Webhook handler processes membership events |
+| **Read memberships** | Webhook handler processes membership activation/deactivation events |
 
 If you see granular permission options, enable read access for:
 - Companies
@@ -74,9 +74,8 @@ Go to the **Webhooks** tab.
 
 ### Events to Subscribe
 
-Enable these three events:
+Enable these events:
 
-- `payment.succeeded`
 - `membership.activated`
 - `membership.deactivated`
 
@@ -175,7 +174,7 @@ Make sure ALL of these are set in both `.env.local` (local dev) and Vercel (prod
 | `WHOP_BUSINESS_CHECKOUT_URL` | (Optional) Direct Business checkout link from Checkout links |
 | `WHOP_PRICING_PAGE_URL` | (Optional) Your product/access page (e.g. `https://whop.com/giveawaymaster/giveawaymaster-access/`) — used as final fallback so "Upgrade to Pro" always links somewhere |
 
-**Upgrade button behavior:** The app tries (1) Whop API with a plan ID (`plan_xxx`), then (2) `WHOP_PRO_CHECKOUT_URL` / `WHOP_BUSINESS_CHECKOUT_URL`, then (3) `WHOP_PRICING_PAGE_URL`. Set at least (2) or (3) in Vercel so the button is never "Upgrade unavailable". You do **not** need a separate "free tier" URL — the free tier is the default; the upgrade flow sends users to Pro/Business checkout or your pricing page.
+**Upgrade button behavior:** The app uses `WHOP_PRO_CHECKOUT_URL` / `WHOP_BUSINESS_CHECKOUT_URL` first, then falls back to `WHOP_PRICING_PAGE_URL`. Set at least one of these in Vercel so the button is never "Upgrade unavailable". You do **not** need a separate "free tier" URL — the free tier is the default; the upgrade flow sends users to Pro/Business checkout or your pricing page.
 
 ### Verify in Vercel
 
@@ -205,7 +204,7 @@ Go to Vercel project > Settings > Environment Variables and confirm:
 ### Test Webhooks
 
 1. In the Whop Developer Dashboard, go to the Webhooks tab
-2. Use the "Send Test" button to fire a test `payment.succeeded` event
+2. Use the "Send Test" button to fire a test `membership.activated` event
 3. Check your Vercel function logs to see if it was received
 
 ---
